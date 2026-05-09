@@ -5,8 +5,8 @@ export const Route = createFileRoute("/")({
   component: SnakeGame,
   head: () => ({
     meta: [
-      { title: "霓虹贪吃蛇 — Neon Snake" },
-      { name: "description", content: "一个赛博朋克风格的贪吃蛇网页小游戏。" },
+      { title: "Neon Snake — 霓虹贪吃蛇" },
+      { name: "description", content: "A cyberpunk-style snake game in your browser." },
     ],
   }),
 });
@@ -25,8 +25,53 @@ const DIRS: Record<Dir, Point> = {
   LEFT: { x: -1, y: 0 },
   RIGHT: { x: 1, y: 0 },
 };
-
 const OPP: Record<Dir, Dir> = { UP: "DOWN", DOWN: "UP", LEFT: "RIGHT", RIGHT: "LEFT" };
+
+type LangCode = "en" | "zh" | "ja" | "ko" | "de" | "it" | "fr" | "es" | "id" | "pl";
+
+type Strings = {
+  title: string; hint: string; score: string; best: string;
+  ready: string; over: string; start: string; again: string;
+};
+
+const LANGS: { code: LangCode; label: string }[] = [
+  { code: "en", label: "English" },
+  { code: "zh", label: "中文" },
+  { code: "ja", label: "日本語" },
+  { code: "ko", label: "한국어" },
+  { code: "de", label: "Deutsch" },
+  { code: "it", label: "Italiano" },
+  { code: "fr", label: "Français" },
+  { code: "es", label: "Español" },
+  { code: "id", label: "Bahasa" },
+  { code: "pl", label: "Polski" },
+];
+
+const I18N: Record<LangCode, Strings> = {
+  en: { title: "NEON SNAKE", hint: "Arrows / WASD to move · Space to pause / restart", score: "Score", best: "Best", ready: "Ready to play?", over: "Game Over", start: "Start", again: "Play Again" },
+  zh: { title: "霓虹贪吃蛇", hint: "方向键 / WASD 控制 · 空格 暂停 / 重开", score: "得分", best: "最高", ready: "准备好了吗？", over: "游戏结束", start: "开始游戏", again: "再来一局" },
+  ja: { title: "ネオン・スネーク", hint: "矢印 / WASD で移動 · スペースで一時停止 / 再開", score: "スコア", best: "最高", ready: "準備はいい？", over: "ゲームオーバー", start: "スタート", again: "もう一度" },
+  ko: { title: "네온 스네이크", hint: "화살표 / WASD 이동 · 스페이스 일시정지 / 재시작", score: "점수", best: "최고", ready: "준비됐나요?", over: "게임 오버", start: "시작", again: "다시 하기" },
+  de: { title: "NEON SCHLANGE", hint: "Pfeile / WASD zum Bewegen · Leertaste Pause / Neustart", score: "Punkte", best: "Bestwert", ready: "Bereit zu spielen?", over: "Spiel vorbei", start: "Starten", again: "Nochmal" },
+  it: { title: "SERPENTE NEON", hint: "Frecce / WASD per muoverti · Spazio pausa / ricomincia", score: "Punteggio", best: "Record", ready: "Pronto a giocare?", over: "Game Over", start: "Inizia", again: "Rigioca" },
+  fr: { title: "SERPENT NÉON", hint: "Flèches / WASD pour bouger · Espace pause / recommencer", score: "Score", best: "Record", ready: "Prêt à jouer ?", over: "Partie terminée", start: "Démarrer", again: "Rejouer" },
+  es: { title: "SERPIENTE NEÓN", hint: "Flechas / WASD para mover · Espacio pausa / reiniciar", score: "Puntos", best: "Récord", ready: "¿Listo para jugar?", over: "Fin del juego", start: "Empezar", again: "Jugar de nuevo" },
+  id: { title: "ULAR NEON", hint: "Panah / WASD untuk bergerak · Spasi jeda / mulai ulang", score: "Skor", best: "Terbaik", ready: "Siap bermain?", over: "Permainan Selesai", start: "Mulai", again: "Main Lagi" },
+  pl: { title: "NEONOWY WĄŻ", hint: "Strzałki / WASD ruch · Spacja pauza / restart", score: "Wynik", best: "Rekord", ready: "Gotowy do gry?", over: "Koniec gry", start: "Start", again: "Zagraj ponownie" },
+};
+
+function detectLang(): LangCode {
+  if (typeof window === "undefined") return "en";
+  const saved = localStorage.getItem("snake_lang") as LangCode | null;
+  if (saved && I18N[saved]) return saved;
+  const n = (navigator.language || "en").toLowerCase();
+  const map: [string, LangCode][] = [
+    ["zh", "zh"], ["ja", "ja"], ["ko", "ko"], ["de", "de"], ["it", "it"],
+    ["fr", "fr"], ["es", "es"], ["id", "id"], ["pl", "pl"], ["en", "en"],
+  ];
+  for (const [p, c] of map) if (n.startsWith(p)) return c;
+  return "en";
+}
 
 function randFood(snake: Point[]): Point {
   while (true) {
@@ -37,6 +82,9 @@ function randFood(snake: Point[]): Point {
 
 function SnakeGame() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [lang, setLang] = useState<LangCode>("en");
+  const t = I18N[lang];
+
   const [snake, setSnake] = useState<Point[]>([{ x: 12, y: 12 }, { x: 11, y: 12 }, { x: 10, y: 12 }]);
   const [dir, setDir] = useState<Dir>("RIGHT");
   const [pendingDir, setPendingDir] = useState<Dir>("RIGHT");
@@ -47,9 +95,15 @@ function SnakeGame() {
   const [over, setOver] = useState(false);
 
   useEffect(() => {
+    setLang(detectLang());
     const b = typeof window !== "undefined" ? Number(localStorage.getItem("snake_best") || 0) : 0;
     setBest(b);
   }, []);
+
+  const changeLang = (c: LangCode) => {
+    setLang(c);
+    if (typeof window !== "undefined") localStorage.setItem("snake_lang", c);
+  };
 
   const reset = useCallback(() => {
     const s = [{ x: 12, y: 12 }, { x: 11, y: 12 }, { x: 10, y: 12 }];
@@ -62,7 +116,6 @@ function SnakeGame() {
     setRunning(true);
   }, []);
 
-  // input
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
@@ -86,7 +139,6 @@ function SnakeGame() {
     return () => window.removeEventListener("keydown", onKey);
   }, [dir, over, reset]);
 
-  // game tick
   useEffect(() => {
     if (!running || over) return;
     const id = setInterval(() => {
@@ -96,14 +148,10 @@ function SnakeGame() {
         const head = prev[0];
         const nh = { x: head.x + DIRS[d].x, y: head.y + DIRS[d].y };
         if (nh.x < 0 || nh.x >= COLS || nh.y < 0 || nh.y >= ROWS) {
-          setOver(true);
-          setRunning(false);
-          return prev;
+          setOver(true); setRunning(false); return prev;
         }
         if (prev.some((s, i) => i !== prev.length - 1 && s.x === nh.x && s.y === nh.y)) {
-          setOver(true);
-          setRunning(false);
-          return prev;
+          setOver(true); setRunning(false); return prev;
         }
         const ate = nh.x === food.x && nh.y === food.y;
         const next = [nh, ...prev];
@@ -126,7 +174,6 @@ function SnakeGame() {
     return () => clearInterval(id);
   }, [running, over, pendingDir, food]);
 
-  // draw
   useEffect(() => {
     const c = canvasRef.current;
     if (!c) return;
@@ -135,30 +182,21 @@ function SnakeGame() {
     const W = COLS * CELL;
     const H = ROWS * CELL;
 
-    // background
     const bg = ctx.createLinearGradient(0, 0, W, H);
     bg.addColorStop(0, "#0a0420");
     bg.addColorStop(1, "#150a35");
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
-    // grid
     ctx.strokeStyle = "rgba(255,255,255,0.04)";
     ctx.lineWidth = 1;
     for (let i = 0; i <= COLS; i++) {
-      ctx.beginPath();
-      ctx.moveTo(i * CELL, 0);
-      ctx.lineTo(i * CELL, H);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(i * CELL, 0); ctx.lineTo(i * CELL, H); ctx.stroke();
     }
     for (let j = 0; j <= ROWS; j++) {
-      ctx.beginPath();
-      ctx.moveTo(0, j * CELL);
-      ctx.lineTo(W, j * CELL);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, j * CELL); ctx.lineTo(W, j * CELL); ctx.stroke();
     }
 
-    // food
     const fx = food.x * CELL + CELL / 2;
     const fy = food.y * CELL + CELL / 2;
     ctx.shadowColor = "#ff2e88";
@@ -169,7 +207,6 @@ function SnakeGame() {
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    // snake
     snake.forEach((s, i) => {
       const isHead = i === 0;
       ctx.shadowColor = isHead ? "#00ffd1" : "#22d3ee";
@@ -181,17 +218,16 @@ function SnakeGame() {
     ctx.shadowBlur = 0;
   }, [snake, food]);
 
-  // touch controls
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
-    const t = e.touches[0];
-    touchStart.current = { x: t.clientX, y: t.clientY };
+    const tt = e.touches[0];
+    touchStart.current = { x: tt.clientX, y: tt.clientY };
   };
   const onTouchEnd = (e: React.TouchEvent) => {
     if (!touchStart.current) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - touchStart.current.x;
-    const dy = t.clientY - touchStart.current.y;
+    const tt = e.changedTouches[0];
+    const dx = tt.clientX - touchStart.current.x;
+    const dy = tt.clientY - touchStart.current.y;
     if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
     let nd: Dir;
     if (Math.abs(dx) > Math.abs(dy)) nd = dx > 0 ? "RIGHT" : "LEFT";
@@ -201,8 +237,22 @@ function SnakeGame() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center px-4 py-8"
+    <div className="min-h-screen w-full flex flex-col items-center px-4 py-6"
       style={{ background: "radial-gradient(ellipse at top, #1a0a3a 0%, #05010f 60%)" }}>
+
+      <div className="w-full max-w-2xl flex justify-end mb-4">
+        <select
+          value={lang}
+          onChange={(e) => changeLang(e.target.value as LangCode)}
+          className="bg-white/5 border border-cyan-400/30 text-white/90 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-cyan-400"
+          aria-label="Language"
+        >
+          {LANGS.map((l) => (
+            <option key={l.code} value={l.code} className="bg-[#0a0420]">{l.label}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="mb-6 text-center">
         <h1 className="text-4xl md:text-5xl font-black tracking-tight"
           style={{
@@ -211,17 +261,17 @@ function SnakeGame() {
             WebkitTextFillColor: "transparent",
             filter: "drop-shadow(0 0 24px rgba(0,255,209,0.35))",
           }}>
-          NEON SNAKE
+          {t.title}
         </h1>
-        <p className="mt-2 text-sm text-white/60">方向键 / WASD 控制 · 空格 暂停 / 重开</p>
+        <p className="mt-2 text-sm text-white/60">{t.hint}</p>
       </div>
 
       <div className="flex gap-4 mb-4 text-white/90 font-mono">
         <div className="px-4 py-2 rounded-lg border border-cyan-400/30 bg-cyan-400/5">
-          得分 <span className="text-cyan-300 font-bold ml-1">{score}</span>
+          {t.score} <span className="text-cyan-300 font-bold ml-1">{score}</span>
         </div>
         <div className="px-4 py-2 rounded-lg border border-pink-400/30 bg-pink-400/5">
-          最高 <span className="text-pink-300 font-bold ml-1">{best}</span>
+          {t.best} <span className="text-pink-300 font-bold ml-1">{best}</span>
         </div>
       </div>
 
@@ -244,7 +294,7 @@ function SnakeGame() {
           <div className="absolute inset-0 flex items-center justify-center rounded-2xl backdrop-blur-sm bg-black/40">
             <div className="text-center">
               <div className="text-2xl font-bold text-white mb-3">
-                {over ? "游戏结束" : "准备好了吗？"}
+                {over ? t.over : t.ready}
               </div>
               <button
                 onClick={over ? reset : () => setRunning(true)}
@@ -254,14 +304,14 @@ function SnakeGame() {
                   boxShadow: "0 0 24px rgba(0,255,209,0.5)",
                 }}
               >
-                {over ? "再来一局" : "开始游戏"}
+                {over ? t.again : t.start}
               </button>
             </div>
           </div>
         )}
       </div>
 
-      <div className="mt-6 grid grid-cols-3 gap-2 md:hidden text-white/80">
+      <div className="mt-6 grid grid-cols-3 gap-2 md:hidden text-white/80 w-48">
         <div />
         <button className="py-3 rounded-lg bg-white/5 border border-white/10" onClick={() => dir !== "DOWN" && setPendingDir("UP")}>↑</button>
         <div />
