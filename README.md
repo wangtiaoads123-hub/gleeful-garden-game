@@ -10,7 +10,7 @@ A modern, neon-cyberpunk reimagining of the classic Snake game — built for the
 
 ## ✨ Features
 
-- 🌃 **Neon cyberpunk aesthetic** — glowing visuals, smooth animations
+- 🌃 **Neon cyberpunk aesthetic** — glowing visuals and smooth animations
 - 🌍 **10 languages** — English, 中文, 日本語, 한국어, Deutsch, Italiano, Français, Español, Bahasa, Polski
 - ⌨️ **Desktop controls** — Arrow keys / WASD
 - 📱 **Mobile controls** — Swipe gestures
@@ -36,7 +36,7 @@ A modern, neon-cyberpunk reimagining of the classic Snake game — built for the
 # Install dependencies
 bun install
 
-# Start dev server
+# Start the dev server
 bun dev
 ```
 
@@ -46,7 +46,7 @@ Then open [http://localhost:5173](http://localhost:5173).
 
 ## 🎥 Promo Video
 
-A 12s square promo video lives in the `remotion/` folder. To render:
+A 12s square promo video lives in the `remotion/` folder. To render it:
 
 ```bash
 cd remotion
@@ -70,6 +70,16 @@ src/
 
 remotion/            # Promo video composition
 ```
+
+---
+
+## 🎯 How to Play
+
+1. Open the game in your browser
+2. Pick your language from the menu
+3. Use **arrow keys** (desktop) or **swipe** (mobile) to steer
+4. Eat the glowing dots to grow longer
+5. Don't hit the walls — or yourself!
 
 ---
 
