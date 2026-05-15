@@ -16,11 +16,11 @@ export const Gameplay: React.FC = () => {
       <div
         style={{
           position: "absolute",
-          top: 80,
-          left: 80,
+          top: 60,
+          left: 60,
           fontFamily: display,
           fontWeight: 700,
-          fontSize: 28,
+          fontSize: 24,
           color: C.cyan,
           letterSpacing: 4,
           opacity: labelIn,
@@ -37,10 +37,10 @@ export const Gameplay: React.FC = () => {
       <div
         style={{
           position: "absolute",
-          top: 80,
-          right: 80,
+          top: 64,
+          right: 60,
           fontFamily: body,
-          fontSize: 22,
+          fontSize: 20,
           color: C.pink,
           letterSpacing: 3,
           opacity: labelIn,
